@@ -40,21 +40,33 @@ export default function CompressVideoPage() {
 
   // Cloudinary Upload Handler
   const handleUploadSuccess = (result) => {
-    if (result.event === "success") {
-      const info = result.info;
+  if (result.event === "success") {
+    const info = result.info;
 
-      setCloudinaryUrl(info.secure_url);
-      setPublicId(info.public_id);
-      setOriginalSize(info.bytes);
+    const allowedFormats = ["mp4", "mov"];
+    const uploadedFormat = info.format?.toLowerCase();
 
-      setIsComplete(false);
-      setProgress(0);
-      setError(null);
-
-      toast.success("Video uploaded successfully!");
+    if (!allowedFormats.includes(uploadedFormat)) {
+      toast.error("Only MP4 and MOV video formats are allowed.");
+      return;
     }
-  };
 
+    if (info.resource_type !== "video") {
+      toast.error("Only video files are allowed.");
+      return;
+    }
+
+    setCloudinaryUrl(info.secure_url);
+    setPublicId(info.public_id);
+    setOriginalSize(info.bytes);
+
+    setIsComplete(false);
+    setProgress(0);
+    setError(null);
+
+    toast.success("Video uploaded successfully!");
+  }
+};
   const formatFileSize = (bytes) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -164,7 +176,14 @@ export default function CompressVideoPage() {
         {/* --- UPLOAD STATE --- */}
         {!cloudinaryUrl && (
           <div className="group relative bg-white border-2 border-dashed border-slate-200 rounded-2xl p-12 transition-all hover:border-indigo-400 hover:bg-indigo-50/10 cursor-pointer">
-            <CldUploadWidget uploadPreset="Projects" onSuccess={handleUploadSuccess}>
+            <CldUploadWidget
+              uploadPreset="Projects"
+              onSuccess={handleUploadSuccess}
+              options={{
+                resourceType: "video",
+                clientAllowedFormats: ["mp4", "mov"],
+                maxFileSize: 500000000, // 500MB
+              }}>            
               {({ open }) => (
                 <div onClick={() => open()} className="flex flex-col items-center justify-center text-center h-64">
                   <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
@@ -174,7 +193,7 @@ export default function CompressVideoPage() {
                     Upload your video
                   </h3>
                   <p className="text-slate-500 max-w-xs mx-auto mb-6">
-                    Drag and drop or click to browse. Supports MP4, MOV, AVI up to 500MB.
+                    Drag and drop or click to browse. Supports MP4 and MOV videos up to 500MB.                  
                   </p>
                   <button className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-medium rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
                     Select File
