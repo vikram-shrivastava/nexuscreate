@@ -29,6 +29,8 @@ export default function GenerateCaptionsPage() {
   const [cloudinaryUrl, setCloudinaryUrl] = useState(null);
   const [publicId, setPublicId] = useState(null);
   const [originalSize, setOriginalSize] = useState(0);
+  const [fileName, setFileName] = useState(null);
+  const [fileType, setFileType] = useState(null);
 
   const [isQueued, setIsQueued] = useState(false);
   const [error, setError] = useState(null);
@@ -56,14 +58,20 @@ const handleUploadSuccess = (result) => {
       return;
     }
 
-    setCloudinaryUrl(info.secure_url);
-    setPublicId(info.public_id);
-    setOriginalSize(info.bytes);
+   setCloudinaryUrl(info.secure_url);
+   setPublicId(info.public_id);
+   setOriginalSize(info.bytes);
 
-    setIsQueued(false);
-    setError(null);
+  setFileName(
+  `${info.original_filename || info.public_id}.${info.format}`
+ );
 
-    toast.success("Video uploaded successfully!");
+setFileType(info.format);
+
+setIsQueued(false);
+setError(null);
+
+toast.success("Video uploaded successfully!");
   }
 };
 
@@ -89,6 +97,8 @@ const handleUploadSuccess = (result) => {
           publicId,
           cloudinaryUrl,
           originalSize,
+          fileName,
+          fileType,
         }),
       });
 
@@ -108,13 +118,15 @@ const handleUploadSuccess = (result) => {
     }
   };
 
-  const handleReset = () => {
-    setCloudinaryUrl(null);
-    setPublicId(null);
-    setOriginalSize(0);
-    setIsQueued(false);
-    setError(null);
-  };
+const handleReset = () => {
+  setCloudinaryUrl(null);
+  setPublicId(null);
+  setOriginalSize(0);
+  setFileName(null);
+  setFileType(null);
+  setIsQueued(false);
+  setError(null);
+};
 
   if (isPageLoading) {
     return (
