@@ -71,29 +71,58 @@ export default function ImageResizePage() {
   }, {});
 
   const handleUploadSuccess = (result) => {
-    if (result?.event === "success") {
-      const info = result.info;
-      setUploadedImages((prev) => {
-        if (prev.find((p) => p.public_id === info.public_id)) return prev;
-        return [
-          ...prev,
-          {
-            secure_url: info.secure_url,
-            public_id: info.public_id,
-            bytes: info.bytes,
-            original_filename: info.original_filename || info.public_id,
-            format: info.format,
-            width: info.width,
-            height: info.height,
-          },
-        ];
-      });
-      toast.success(`Added ${info.original_filename || "image"}`);
-      setIsComplete(false);
-      setProgress(0);
-    }
-  };
+  if (result?.event === "success") {
 
+    const info = result.info;
+
+    const allowedFormats = [
+      "jpg",
+      "jpeg",
+      "png",
+      "webp"
+    ];
+
+    const uploadedFormat = info.format?.toLowerCase();
+
+    if (!allowedFormats.includes(uploadedFormat)) {
+      toast.error("Only JPG, JPEG, PNG and WEBP images are allowed.");
+      return;
+    }
+
+    if (info.resource_type !== "image") {
+      toast.error("Only image files are allowed.");
+      return;
+    }
+
+
+    setUploadedImages((prev) => {
+
+      if (prev.find((p) => p.public_id === info.public_id)) {
+        return prev;
+      }
+
+      return [
+        ...prev,
+        {
+          secure_url: info.secure_url,
+          public_id: info.public_id,
+          bytes: info.bytes,
+          original_filename:
+            info.original_filename || info.public_id,
+          format: info.format,
+          width: info.width,
+          height: info.height,
+        },
+      ];
+    });
+
+
+    toast.success(`Added ${info.original_filename || "image"}`);
+
+    setIsComplete(false);
+    setProgress(0);
+  }
+};
   const removeUploadedImage = (publicId) => {
     setUploadedImages((prev) => prev.filter((p) => p.public_id !== publicId));
     setResizedImages((prev) => {
@@ -279,9 +308,14 @@ export default function ImageResizePage() {
             {uploadedImages.length === 0 ? (
               <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-indigo-400 hover:bg-indigo-50/30 transition-all cursor-pointer">
                  <CldUploadWidget 
-                    uploadPreset="Projects" 
-                    onSuccess={handleUploadSuccess}
-                    options={{ multiple: true, resourceType: "image" }}
+                  uploadPreset="Projects" 
+                  onSuccess={handleUploadSuccess}
+                  options={{
+                    multiple: true,
+                    resourceType: "image",
+                    clientAllowedFormats: ["jpg", "jpeg", "png", "webp"],
+                    maxFileSize: 20000000, // 20MB
+                  }}
                   >
                   {({ open }) => (
                     <div onClick={() => open()}>
@@ -289,7 +323,9 @@ export default function ImageResizePage() {
                         <Upload size={20} />
                       </div>
                       <p className="text-sm font-medium text-slate-900">Click to Upload</p>
-                      <p className="text-xs text-slate-500 mt-1">JPG, PNG, WebP</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        JPG, JPEG, PNG, WEBP (Max 20MB)
+                      </p>
                     </div>
                   )}
                 </CldUploadWidget>
@@ -313,9 +349,14 @@ export default function ImageResizePage() {
                 ))}
                 <div className="pt-2">
                    <CldUploadWidget 
-                      uploadPreset="Projects" 
-                      onSuccess={handleUploadSuccess}
-                      options={{ multiple: true, resourceType: "image" }}
+                     uploadPreset="Projects" 
+                     onSuccess={handleUploadSuccess}
+                     options={{
+                      multiple: true,
+                      resourceType: "image",
+                      clientAllowedFormats: ["jpg", "jpeg", "png", "webp"],
+                      maxFileSize: 20000000, // 20MB
+                     }}
                     >
                     {({ open }) => (
                       <button onClick={() => open()} className="w-full py-2 text-xs font-medium text-indigo-600 border border-dashed border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">
