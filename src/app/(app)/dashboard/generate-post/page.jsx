@@ -134,7 +134,19 @@ export default function GeneratePostPage() {
   };
 
   const handleUploadSuccess = (result) => {
+
+    const format = result?.info?.format?.toLowerCase();
+
+    const allowedFormats = ["mp4", "mov"];
+
+    if (!allowedFormats.includes(format)) {
+      toast.error("Only MP4 and MOV videos are allowed.");
+      return;
+    }
+
+
     const url = result?.info?.secure_url;
+
     if (!url) {
       toast.error("Upload failed. Try again.");
       return;
@@ -144,18 +156,17 @@ export default function GeneratePostPage() {
     setSelectedFile({
       name: result.info.original_filename + "." + result.info.format,
       size: result.info.bytes,
-      type: result.info.resource_type === "video" ? "video" : "image",
-      PublicId:result.info.public_id
+      type: "video",
+      PublicId: result.info.public_id
     });
 
-    setFileType(result.info.resource_type);
+    setFileType("video");
     setMediaPreview(url);
     setIsComplete(false);
-    setProjectId(null); // Reset project ID on new upload
+    setProjectId(null);
 
-    toast.success("Media uploaded successfully!");
+    toast.success("Video uploaded successfully!");
   };
-
   const handleGenerate = async () => {
     if (!cloudinaryUrl) {
       toast.error("Please upload a media file first.");
@@ -262,7 +273,7 @@ export default function GeneratePostPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">AI Post Generator</h1>
-            <p className="text-slate-500 mt-1 text-sm">Turn your videos and images into viral social media posts instantly.</p>
+            <p className="text-slate-500 mt-1 text-sm">Turn your videos into viral social media posts instantly.</p>
           </div>
           
           {/* Usage Pill */}
@@ -278,7 +289,14 @@ export default function GeneratePostPage() {
         {/* --- UPLOAD STATE --- */}
         {!selectedFile && (
           <div className="group relative bg-white border-2 border-dashed border-slate-200 rounded-2xl p-12 transition-all hover:border-indigo-400 hover:bg-indigo-50/10 cursor-pointer">
-            <CldUploadWidget uploadPreset="Projects" onSuccess={handleUploadSuccess}>
+            <CldUploadWidget
+              uploadPreset="Projects"
+              onSuccess={handleUploadSuccess}
+              options={{
+                resourceType: "video",
+                clientAllowedFormats: ["mp4", "mov"],
+                maxFileSize: 100000000, // 100 MB (optional)
+              }}>
               {({ open }) => (
                 <button onClick={() => open()} className="flex flex-col items-center justify-center text-center h-64 w-full focus:outline-none">
                   <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
@@ -288,7 +306,7 @@ export default function GeneratePostPage() {
                     Upload Media
                   </h3>
                   <p className="text-slate-500 max-w-xs mx-auto mb-6">
-                    Supports Videos (MP4, MOV) and Images (JPG, PNG). We'll analyze the visual content to write your copy.
+                    Only MP4 and MOV Videos are Supported. We'll analyze the visual content to write your copy.
                   </p>
                   <span className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-medium rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
                     Select File
